@@ -1,0 +1,119 @@
+= Vert.x Cache
+
+Vert.x Cache offers a caching API similar to JCache (JSR 107) but with an _async flavor_.
+
+== Using vertx-cache
+
+To use the Vert.x Cache, add the following dependency to the _dependencies_ section of your build
+descriptor:
+
+* Maven (in your `pom.xml`):
+
+[source,xml,subs="+attributes"]
+----
+<dependency>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-cache</artifactId>
+  <version>3.3.0-SNAPSHOT</version>
+</dependency>
+----
+
+* Gradle (in your `build.gradle` file):
+
+[source,groovy,subs="+attributes"]
+----
+compile 'io.vertx:vertx-cache:3.3.0-SNAPSHOT'
+----
+
+You will need an implementation of the JCache API. See https://jcp.org/aboutJava/communityprocess/implementations/jsr107/index.html.
+
+== Creating an instance
+
+This API is intended to be used for distributed cache, so creating an instance may take times to join the
+underlying distributed infrastructure. That's why all creation method are asynchronous (except if you provide the
+underlying JCache object.
+
+To create a `link:../../apidocs/io/vertx/ext/cache/Cache.html[Cache]` instance, use the
+`link:../../apidocs/io/vertx/ext/cache/Cache.html#create-io.vertx.core.Vertx-java.lang.String-io.vertx.ext.cache.CacheOptions-io.vertx.core.Handler-[Cache.create]`
+method. You can configure the name of the cache and various options. Once the cache has been created, the result
+handler is called:
+
+[source,java]
+----
+Cache.create(vertx, "my-cache", new CacheOptions().setExpirationPolicy(ExpirationPolicy.TOUCH)
+    .setExpirationTimeInSecond(3600), cache -> {
+  // cache is the instance you can use
+});
+----
+
+If you are in Java, you can use:
+
+* `link:../../apidocs/io/vertx/ext/cache/Cache.html#create-io.vertx.core.Vertx-javax.cache.Cache-[Cache.create]` - you provide the underlying
+cache instance
+*
+`link:../../apidocs/io/vertx/ext/cache/Cache.html#create-io.vertx.core.Vertx-java.lang.String-javax.cache.configuration.Configuration-io.vertx.core.Handler-[Cache.create]`
+- you provide the JCache configuration
+* `link:../../apidocs/io/vertx/ext/cache/Cache.html#create-io.vertx.core.Vertx-java.util.function.Supplier-io.vertx.core.Handler-[Cache.create]`
+- you provide a method returning the JCache object
+
+Notice that in the (pure) JCache API, you configure the expiration policy for the whole cache (and not per entry).
+Don't forget to configure it.
+
+== Adding cache entries
+
+There are various method to add entries to the cache. The simplest is
+`link:../../apidocs/io/vertx/ext/cache/Cache.html#put-java.lang.Object-java.lang.Object-io.vertx.core.Handler-[put]`:
+
+[source,java]
+----
+cache.put("key", "my value", v -> {
+  if (v.failed()) {
+    // cannot insert the value
+  } else {
+    // value inserted
+  }
+});
+----
+
+There are more advanced method such as:
+
+* `link:../../apidocs/io/vertx/ext/cache/Cache.html#putAll-java.util.Map-io.vertx.core.Handler-[putAll]`
+* `link:../../apidocs/io/vertx/ext/cache/Cache.html#putIfAbsent-java.lang.Object-java.lang.Object-io.vertx.core.Handler-[putIfAbsent]`
+* `link:../../apidocs/io/vertx/ext/cache/Cache.html#getAndPut-java.lang.Object-java.lang.Object-io.vertx.core.Handler-[getAndPut]`
+
+== Reading cached values
+
+ * There are various method to read entries from the cache. The simplest is
+`link:../../apidocs/io/vertx/ext/cache/Cache.html#get-java.lang.Object-io.vertx.core.Handler-[get]`:
+
+[source,java]
+----
+cache.get("key", retrieved -> {
+  if (retrieved.failed()) {
+    // cannot get the value
+  } else {
+    String cachedValue = retrieved.result();
+    // cachedValue may be null if the cache don't have a mapping for "key".
+  }
+});
+----
+
+There are more advanced method such as:
+
+* `link:../../apidocs/io/vertx/ext/cache/Cache.html#getAll-io.vertx.core.Handler-[getAll]`
+* `link:../../apidocs/io/vertx/ext/cache/Cache.html#getAll-java.util.Set-io.vertx.core.Handler-[getAll]`
+* `link:../../apidocs/io/vertx/ext/cache/Cache.html#getAndPut-java.lang.Object-java.lang.Object-io.vertx.core.Handler-[getAndPut]`
+* `link:../../apidocs/io/vertx/ext/cache/Cache.html#getAndRemove-java.lang.Object-io.vertx.core.Handler-[getAndRemove]`
+* `link:../../apidocs/io/vertx/ext/cache/Cache.html#getAndReplace-java.lang.Object-java.lang.Object-io.vertx.core.Handler-[getAndReplace]`
+
+== Closing the cache
+
+Don't forget to close and destroy the cache when done:
+
+[source,java]
+----
+cache.close(done -> {
+  // you can destroy it to unregister it from the cache manager
+  cache.destroy();
+});
+----

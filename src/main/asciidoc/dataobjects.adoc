@@ -1,0 +1,22 @@
+= Cheatsheets
+
+[[CacheOptions]]
+== CacheOptions
+
+++++
+ @author <a href="http://escoffier.me">Clement Escoffier</a>
+++++
+'''
+
+[cols=">25%,^25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[expirationPolicy]]`expirationPolicy`|`link:enums.html#ExpirationPolicy[ExpirationPolicy]`|-
+|[[expirationTimeInSecond]]`expirationTimeInSecond`|`Number (long)`|-
+|[[managementEnabled]]`managementEnabled`|`Boolean`|-
+|[[providerClassName]]`providerClassName`|`String`|-
+|[[statisticEnabled]]`statisticEnabled`|`Boolean`|-
+|[[storeByValue]]`storeByValue`|`Boolean`|-
+|===
+

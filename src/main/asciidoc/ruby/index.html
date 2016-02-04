@@ -1,0 +1,126 @@
+= Vert.x Cache
+
+Vert.x Cache offers a caching API similar to JCache (JSR 107) but with an _async flavor_.
+
+== Using vertx-cache
+
+To use the Vert.x Cache, add the following dependency to the _dependencies_ section of your build
+descriptor:
+
+* Maven (in your `pom.xml`):
+
+[source,xml,subs="+attributes"]
+----
+<dependency>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-cache</artifactId>
+  <version>3.3.0-SNAPSHOT</version>
+</dependency>
+----
+
+* Gradle (in your `build.gradle` file):
+
+[source,groovy,subs="+attributes"]
+----
+compile 'io.vertx:vertx-cache:3.3.0-SNAPSHOT'
+----
+
+You will need an implementation of the JCache API. See https://jcp.org/aboutJava/communityprocess/implementations/jsr107/index.html.
+
+== Creating an instance
+
+This API is intended to be used for distributed cache, so creating an instance may take times to join the
+underlying distributed infrastructure. That's why all creation method are asynchronous (except if you provide the
+underlying JCache object.
+
+To create a `link:../../yardoc/VertxCache/Cache.html[Cache]` instance, use the
+`link:../../yardoc/VertxCache/Cache.html#create-class_method[Cache.create]`
+method. You can configure the name of the cache and various options. Once the cache has been created, the result
+handler is called:
+
+[source,ruby]
+----
+require 'vertx-cache/cache'
+VertxCache::Cache.create(vertx, "my-cache", {
+  'expirationPolicy' => :TOUCH,
+  'expirationTimeInSecond' => 3600
+}) { |cache|
+  # cache is the instance you can use
+}
+
+----
+
+If you are in Java, you can use:
+
+* `link:../../yardoc/VertxCache/Cache.html#create-class_method[Cache.create]` - you provide the underlying
+cache instance
+*
+`link:../../yardoc/VertxCache/Cache.html#create-class_method[Cache.create]`
+- you provide the JCache configuration
+* `link:../../yardoc/VertxCache/Cache.html#create-class_method[Cache.create]`
+- you provide a method returning the JCache object
+
+Notice that in the (pure) JCache API, you configure the expiration policy for the whole cache (and not per entry).
+Don't forget to configure it.
+
+== Adding cache entries
+
+There are various method to add entries to the cache. The simplest is
+`link:../../yardoc/VertxCache/Cache.html#put-instance_method[put]`:
+
+[source,ruby]
+----
+cache.put("key", "my value") { |v_err,v|
+  if (v_err != nil)
+    # cannot insert the value
+  else
+    # value inserted
+  end
+}
+
+----
+
+There are more advanced method such as:
+
+* `link:../../yardoc/VertxCache/Cache.html#put_all-instance_method[putAll]`
+* `link:../../yardoc/VertxCache/Cache.html#put_if_absent-instance_method[putIfAbsent]`
+* `link:../../yardoc/VertxCache/Cache.html#get_and_put-instance_method[getAndPut]`
+
+== Reading cached values
+
+ * There are various method to read entries from the cache. The simplest is
+`link:../../yardoc/VertxCache/Cache.html#get-instance_method[get]`:
+
+[source,ruby]
+----
+cache.get("key") { |retrieved_err,retrieved|
+  if (retrieved_err != nil)
+    # cannot get the value
+  else
+    cachedValue = retrieved
+    # cachedValue may be null if the cache don't have a mapping for "key".
+  end
+}
+
+----
+
+There are more advanced method such as:
+
+* `link:../../yardoc/VertxCache/Cache.html#get_all-instance_method[getAll]`
+* `link:../../yardoc/VertxCache/Cache.html#get_all-instance_method[getAll]`
+* `link:../../yardoc/VertxCache/Cache.html#get_and_put-instance_method[getAndPut]`
+* `link:../../yardoc/VertxCache/Cache.html#get_and_remove-instance_method[getAndRemove]`
+* `link:../../yardoc/VertxCache/Cache.html#get_and_replace-instance_method[getAndReplace]`
+
+== Closing the cache
+
+Don't forget to close and destroy the cache when done:
+
+[source,ruby]
+----
+cache.close() { |done|
+  # you can destroy it to unregister it from the cache manager
+  cache.destroy()
+}
+
+----

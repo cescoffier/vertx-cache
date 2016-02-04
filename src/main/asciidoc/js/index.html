@@ -1,0 +1,126 @@
+= Vert.x Cache
+
+Vert.x Cache offers a caching API similar to JCache (JSR 107) but with an _async flavor_.
+
+== Using vertx-cache
+
+To use the Vert.x Cache, add the following dependency to the _dependencies_ section of your build
+descriptor:
+
+* Maven (in your `pom.xml`):
+
+[source,xml,subs="+attributes"]
+----
+<dependency>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-cache</artifactId>
+  <version>3.3.0-SNAPSHOT</version>
+</dependency>
+----
+
+* Gradle (in your `build.gradle` file):
+
+[source,groovy,subs="+attributes"]
+----
+compile 'io.vertx:vertx-cache:3.3.0-SNAPSHOT'
+----
+
+You will need an implementation of the JCache API. See https://jcp.org/aboutJava/communityprocess/implementations/jsr107/index.html.
+
+== Creating an instance
+
+This API is intended to be used for distributed cache, so creating an instance may take times to join the
+underlying distributed infrastructure. That's why all creation method are asynchronous (except if you provide the
+underlying JCache object.
+
+To create a `link:../../jsdoc/cache-Cache.html[Cache]` instance, use the
+`link:../../jsdoc/cache-Cache.html#create[Cache.create]`
+method. You can configure the name of the cache and various options. Once the cache has been created, the result
+handler is called:
+
+[source,js]
+----
+var Cache = require("vertx-cache-js/cache");
+Cache.create(vertx, "my-cache", {
+  "expirationPolicy" : 'TOUCH',
+  "expirationTimeInSecond" : 3600
+}, function (cache) {
+  // cache is the instance you can use
+});
+
+----
+
+If you are in Java, you can use:
+
+* `link:../../jsdoc/cache-Cache.html#create[Cache.create]` - you provide the underlying
+cache instance
+*
+`link:../../jsdoc/cache-Cache.html#create[Cache.create]`
+- you provide the JCache configuration
+* `link:../../jsdoc/cache-Cache.html#create[Cache.create]`
+- you provide a method returning the JCache object
+
+Notice that in the (pure) JCache API, you configure the expiration policy for the whole cache (and not per entry).
+Don't forget to configure it.
+
+== Adding cache entries
+
+There are various method to add entries to the cache. The simplest is
+`link:../../jsdoc/cache-Cache.html#put[put]`:
+
+[source,js]
+----
+cache.put("key", "my value", function (v, v_err) {
+  if (v_err != null) {
+    // cannot insert the value
+  } else {
+    // value inserted
+  }
+});
+
+----
+
+There are more advanced method such as:
+
+* `link:../../jsdoc/cache-Cache.html#putAll[putAll]`
+* `link:../../jsdoc/cache-Cache.html#putIfAbsent[putIfAbsent]`
+* `link:../../jsdoc/cache-Cache.html#getAndPut[getAndPut]`
+
+== Reading cached values
+
+ * There are various method to read entries from the cache. The simplest is
+`link:../../jsdoc/cache-Cache.html#get[get]`:
+
+[source,js]
+----
+cache.get("key", function (retrieved, retrieved_err) {
+  if (retrieved_err != null) {
+    // cannot get the value
+  } else {
+    var cachedValue = retrieved;
+    // cachedValue may be null if the cache don't have a mapping for "key".
+  }
+});
+
+----
+
+There are more advanced method such as:
+
+* `link:../../jsdoc/cache-Cache.html#getAll[getAll]`
+* `link:../../jsdoc/cache-Cache.html#getAll[getAll]`
+* `link:../../jsdoc/cache-Cache.html#getAndPut[getAndPut]`
+* `link:../../jsdoc/cache-Cache.html#getAndRemove[getAndRemove]`
+* `link:../../jsdoc/cache-Cache.html#getAndReplace[getAndReplace]`
+
+== Closing the cache
+
+Don't forget to close and destroy the cache when done:
+
+[source,js]
+----
+cache.close(function (done) {
+  // you can destroy it to unregister it from the cache manager
+  cache.destroy();
+});
+
+----
