@@ -34,7 +34,7 @@
       <!-- override the hazelcast version to leave on the edge -->
       <groupId>com.hazelcast</groupId>
       <artifactId>hazelcast</artifactId>
-      <version>3.6</version>
+      <version>4.0.5</version>
       <scope>test</scope>
     </dependency>
     <dependency>
